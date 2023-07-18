@@ -62,10 +62,10 @@ struct FFixedUObjectArray
 		if (Num > Max)
 			return false;
 
-		if (Max > 4000000)
+		if (Max > 0x400000)
 			return false;
 
-		if (Num < 100000)
+		if (Num < 0x1000)
 			return false;
 
 		if (IsBadReadPtr(Objects))
@@ -95,6 +95,12 @@ void ObjectArray::Init()
 	PIMAGE_NT_HEADERS NtHeader = (PIMAGE_NT_HEADERS)(ImageBase + DosHeader->e_lfanew);
 	PIMAGE_SECTION_HEADER Sections = IMAGE_FIRST_SECTION(NtHeader);
 
+	//if (reinterpret_cast<FFixedUObjectArray*>(ImageBase + 0x43CE920)->IsValid())
+	//	exit(3);
+
+	uintptr_t GObjectsAddr = ImageBase + 0x43CE920;
+	std::cout << "GObjects: << 0x" << (void*)GObjectsAddr << std::endl;
+
 	uint8_t* DataSection = nullptr;
 	DWORD DataSize = 0;
 
@@ -102,7 +108,13 @@ void ObjectArray::Init()
 	{
 		IMAGE_SECTION_HEADER& CurrentSection = Sections[i];
 
-		if (std::string((char*)CurrentSection.Name) == ".data")
+		std::cout << "Section: " << std::string((char*)CurrentSection.Name) << std::endl;
+		std::cout << "Address-scope: 0x" << (void*)(CurrentSection.VirtualAddress + ImageBase) << " - 0x" << (void*)(CurrentSection.VirtualAddress + ImageBase + CurrentSection.Misc.VirtualSize) << std::endl;
+
+		if (CurrentSection.VirtualAddress < 0x43CE920 && CurrentSection.Misc.VirtualSize > 0x43CE920)
+			std::cout << "SECTION CONTAINS GOBJECTS!!!" << std::endl;
+
+		if (std::string((char*)CurrentSection.Name) == ".sdata")
 		{
 			DataSection = (uint8_t*)(CurrentSection.VirtualAddress + ImageBase);
 			DataSize = CurrentSection.Misc.VirtualSize;
@@ -115,6 +127,8 @@ void ObjectArray::Init()
 	{
 		auto FixedArray = reinterpret_cast<FFixedUObjectArray*>(DataSection + i);
 		auto ChunkedArray = reinterpret_cast<FChunkedFixedUObjectArray*>(DataSection + i);
+
+		//std::cout << "Address: 0x" << std::hex << std::uppercase << (void*)(DataSection + i) << std::endl;
 
 		if (FixedArray->IsValid())
 		{
@@ -146,6 +160,7 @@ void ObjectArray::Init()
 
 			Off::InSDK::FUObjectItemSize = SizeOfFUObjectItem;
 
+			Sleep(3000);
 			return;
 		}
 		else if (ChunkedArray->IsValid())
@@ -200,7 +215,7 @@ void ObjectArray::Init()
 			return;
 		}
 	}
-
+	Sleep(30000000);
 	std::cout << "\nGObjects couldn't be found!\n\n\n";
 }
 

@@ -17,10 +17,13 @@ void Generator::Init()
 	//Off::InSDK::InitPE(/*PEIndex*/);
 
 	ObjectArray::Init();
-	FName::Init();
+	//FName::Init();
+	FName::Init(0x098E5B0);
 	Off::Init();
-	Off::InSDK::InitPE(); //Must be last, relies on offsets initialized in Off::Init()
-
+	//Off::InSDK::InitPE(); //Must be last, relies on offsets initialized in Off::Init()
+	Off::InSDK::InitPE(0x0);
+	Settings::GameName = "LifeIsStrange";
+	Settings::GameVersion = "2";
 	InitPredefinedMembers();
 	InitPredefinedFunctions();
 }

@@ -271,13 +271,13 @@ inline MemAddress FindByString(Type RefStr)
 		std::string SectionName = (const char*)CurrentSection.Name;
 
 		//std::cout << "Section: " << SectionName << " at 0x" << (void*)(CurrentSection.VirtualAddress + ImageBase) << "\n";
-
-		if (SectionName == ".rdata" && !DataSection)
+		//rdata - sdata - pdata - idata - data - edata
+		if (SectionName == ".link" && !DataSection)
 		{
 			DataSection = (uint8_t*)(CurrentSection.VirtualAddress + ImageBase);
 			DataSize = CurrentSection.Misc.VirtualSize;
 		}
-		else if (SectionName == ".text" && !TextSection)
+		else if (SectionName == ".edata" && !TextSection)
 		{
 			TextSection = (uint8_t*)(CurrentSection.VirtualAddress + ImageBase);
 			TextSize = CurrentSection.Misc.VirtualSize;
@@ -290,7 +290,7 @@ inline MemAddress FindByString(Type RefStr)
 		{
 			if (strcmp((const char*)RefStr, (const char*)(DataSection + i)) == 0)
 			{
-				//std::cout << "FoundStr ref: " << (const char*)(DataSection + i) << "\n";
+				std::cout << "FoundStr ref: " << (const char*)(DataSection + i) << "\n";
 
 				StringAddress = DataSection + i;
 			}
@@ -305,6 +305,32 @@ inline MemAddress FindByString(Type RefStr)
 			}
 		}
 	}
+
+	uint8_t* P = (uint8_t*)(ImageBase + 0xAE2E0DC);
+
+	if ((P[0] == uint8_t(0x4C) || P[0] == uint8_t(0x48)) && P[1] == uint8_t(0x8D))
+	{
+		std::cout << "Valid!" << std::endl;
+	}
+
+	uint8_t* Data = (uint8_t*)ImageBase;
+
+	for (int i = 0; i < 0x17B2EFF8; i++)
+	{
+		// opcode: lea
+		if ((Data[i] == uint8_t(0x4C) || Data[i] == uint8_t(0x48)) && Data[i + 1] == uint8_t(0x8D))
+		{
+			const uint8_t* StrPtr = *(uint32_t*)(Data + i + 3) + 7 + Data + i;
+
+			if (StrPtr == StringAddress)
+			{
+				//std::cout << "Found Address: 0x" << (void*)(TextSection + i) << "\n";
+
+				return { TextSection + i };
+			}
+		}
+	}
+
 
 	for (int i = 0; i < TextSize; i++)
 	{

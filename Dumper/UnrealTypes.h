@@ -159,6 +159,8 @@ public:
 
 		auto StringRef = FindByString("ForwardShadingQuality_");
 
+		std::cout << "StringRef: " << (void*)StringRef << std::endl;
+
 		int i = 0;
 		while (!AppendString && i < PossibleSigs.size())
 		{
