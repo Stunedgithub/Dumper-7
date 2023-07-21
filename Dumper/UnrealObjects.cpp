@@ -903,7 +903,7 @@ std::string UELazyObjectProperty::GetCppType() const
 std::string UESoftObjectProperty::GetCppType() const
 {
 	if (!GetPropertyClass())
-		return std::format("TSoftObjectPtr<class UObject>", GetPropertyClass().GetCppName());
+		return "TSoftObjectPtr<class UObject>";
 
 	return std::format("TSoftObjectPtr<class {}>", GetPropertyClass().GetCppName());
 }
